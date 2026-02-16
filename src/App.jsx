@@ -7,7 +7,7 @@ import {
   ContactShadows,
   MeshTransmissionMaterial,
 } from "@react-three/drei";
-import { motion, useScroll, useTransform, useSpring, AnimatePresence } from "framer-motion";
+import { motion as Motion, useScroll, useTransform, useSpring, AnimatePresence } from "framer-motion";
 
 /* ---------------- 3D HERO OBJECT (Optimized) ---------------- */
 
@@ -65,24 +65,33 @@ export default function App() {
   const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
   const { scrollYProgress } = useScroll({ target: containerRef });
   const [selectedCategory, setSelectedCategory] = useState(null);
+  const [isLoginOpen, setIsLoginOpen] = useState(false);
+  const [newsletterEmail, setNewsletterEmail] = useState("");
+  const [isSubscribeOpen, setIsSubscribeOpen] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState("home");
+  const [cartItems, setCartItems] = useState([]);
+  const [cartNotice, setCartNotice] = useState("");
+  const cartNoticeTimerRef = useRef(null);
+  const heroOpacity = useTransform(scrollYProgress, [0, 0.1], [1, 0]);
 
   const allProducts = [
     // CLOTHES - Real clothing products
-    { id: "CL-01", name: "Oversized Cotton Tee", price: "₹299", category: "CLOTHES", img: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=500&h=600&fit=crop" },
-    { id: "CL-02", name: "Vintage Graphic Hoodie", price: "₹599", category: "CLOTHES", img: "https://images.unsplash.com/photo-1556821552-cb06b6fa0c3b?w=500&h=600&fit=crop" },
-    { id: "CL-03", name: "Denim Jacket Blue", price: "₹899", category: "CLOTHES", img: "https://images.unsplash.com/photo-1551028719-00167b16ebc5?w=500&h=600&fit=crop" },
+    { id: "CL-01", name: "Oversized Cotton Tee", price: "₹299", category: "CLOTHES", img: "https://m.media-amazon.com/images/I/61rQy0KmJmL._AC_UL480_FMwebp_QL65_.jpg" },
+    { id: "CL-02", name: "Vintage Graphic Hoodie", price: "₹599", category: "CLOTHES", img: "https://m.media-amazon.com/images/I/715BU9q0tWL._AC_UL480_FMwebp_QL65_.jpg" },
+    { id: "CL-03", name: "Denim Jacket Blue", price: "₹899", category: "CLOTHES", img: "https://m.media-amazon.com/images/I/61lkPO7RtML._AC_UL480_FMwebp_QL65_.jpg" },
     // DECORATIVE ITEMS - Real decor products
-    { id: "DE-01", name: "Ceramic Vase White", price: "₹249", category: "DECORATIVE ITEMS", img: "https://images.unsplash.com/photo-1578500494198-246f612d03b3?w=500&h=600&fit=crop" },
-    { id: "DE-02", name: "Modern Wall Canvas", price: "₹399", category: "DECORATIVE ITEMS", img: "https://images.unsplash.com/photo-1582053272087-1b9e1f50bf8e?w=500&h=600&fit=crop" },
-    { id: "DE-03", name: "Gold Ceramic Pot", price: "₹349", category: "DECORATIVE ITEMS", img: "https://images.unsplash.com/photo-1567186573515-0586dfa45125?w=500&h=600&fit=crop" },
+    { id: "DE-01", name: "Ceramic Vase White", price: "₹249", category: "DECORATIVE ITEMS", img: "https://m.media-amazon.com/images/I/813Kzy7rfqL._AC_UL480_FMwebp_QL65_.jpg" },
+    { id: "DE-02", name: "Modern Wall Canvas", price: "₹399", category: "DECORATIVE ITEMS", img: "https://m.media-amazon.com/images/I/71PGTjVmqxL._AC_UL480_FMwebp_QL65_.jpg" },
+    { id: "DE-03", name: "Gold Ceramic Pot", price: "₹349", category: "DECORATIVE ITEMS", img: "https://m.media-amazon.com/images/I/61HlF6RzAnL._AC_UL480_FMwebp_QL65_.jpg" },
     // COOL GADGETS - Real tech gadgets
-    { id: "GA-01", name: "LED Desk Lamp", price: "₹301", category: "COOL GADGETS", img: "https://images.unsplash.com/photo-1565636192335-14a5a5a3f3fa?w=500&h=600&fit=crop" },
-    { id: "GA-02", name: "Wireless Earbuds Pro", price: "₹449", category: "COOL GADGETS", img: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500&h=600&fit=crop" },
-    { id: "GA-03", name: "Mini Smart Speaker", price: "₹799", category: "COOL GADGETS", img: "https://images.unsplash.com/photo-1589003077984-894e133dba90?w=500&h=600&fit=crop" },
+    { id: "GA-01", name: "LED Desk Lamp", price: "₹301", category: "COOL GADGETS", img: "https://m.media-amazon.com/images/I/51vTJvfA7cL._AC_UL480_FMwebp_QL65_.jpg" },
+    { id: "GA-02", name: "Wireless Earbuds Pro", price: "₹449", category: "COOL GADGETS", img: "https://m.media-amazon.com/images/I/718Vby0O1GL._AC_UY327_FMwebp_QL65_.jpg" },
+    { id: "GA-03", name: "Mini Smart Speaker", price: "₹799", category: "COOL GADGETS", img: "https://m.media-amazon.com/images/I/61ln9HHYBoL._AC_UY327_FMwebp_QL65_.jpg" },
     // BUDGET ITEMS - Real affordable products
-    { id: "BU-01", name: "Phone Stand", price: "₹99", category: "BUDGET ITEMS", img: "https://images.unsplash.com/photo-1605559424843-9e4c3ca4b7f1?w=500&h=600&fit=crop" },
-    { id: "BU-02", name: "Desk Organizer Set", price: "₹149", category: "BUDGET ITEMS", img: "https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=500&h=600&fit=crop" },
-    { id: "BU-03", name: "USB Cable Set", price: "₹199", category: "BUDGET ITEMS", img: "https://images.unsplash.com/photo-1625948515291-69613efd103f?w=500&h=600&fit=crop" },
+    { id: "BU-01", name: "Phone Stand", price: "₹99", category: "BUDGET ITEMS", img: "https://m.media-amazon.com/images/I/51gsnG1oP2L._AC_UY327_FMwebp_QL65_.jpg" },
+    { id: "BU-02", name: "Desk Organizer Set", price: "₹149", category: "BUDGET ITEMS", img: "https://m.media-amazon.com/images/I/61A5u90XztL._AC_UL480_FMwebp_QL65_.jpg" },
+    { id: "BU-03", name: "USB Cable Set", price: "₹199", category: "BUDGET ITEMS", img: "https://m.media-amazon.com/images/I/7100MyxcglL._AC_UY327_FMwebp_QL65_.jpg" },
   ];
 
   const filteredCategoryProducts = selectedCategory
@@ -96,40 +105,117 @@ export default function App() {
     { id: "FP-04", name: "Twister Vase", price: "₹249", img: "https://m.media-amazon.com/images/I/511s4x3jzzL._AC_UY327_FMwebp_QL65_.jpg" },
   ];
 
+  const cartCount = useMemo(
+    () => cartItems.reduce((total, item) => total + item.quantity, 0),
+    [cartItems]
+  );
+
+  const addToCart = (product) => {
+    setCartItems((prev) => {
+      const existing = prev.find((item) => item.id === product.id);
+      if (existing) {
+        return prev.map((item) =>
+          item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
+        );
+      }
+      return [...prev, { ...product, quantity: 1 }];
+    });
+
+    if (cartNoticeTimerRef.current) clearTimeout(cartNoticeTimerRef.current);
+    setCartNotice(`${product.name} added to cart`);
+    cartNoticeTimerRef.current = setTimeout(() => setCartNotice(""), 1800);
+  };
+
+  const removeFromCart = (productId) => {
+    let removedName = "";
+    setCartItems((prev) =>
+      prev
+        .map((item) => {
+          if (item.id === productId) {
+            removedName = item.name;
+            return { ...item, quantity: item.quantity - 1 };
+          }
+          return item;
+        })
+        .filter((item) => item.quantity > 0)
+    );
+
+    if (removedName) {
+      if (cartNoticeTimerRef.current) clearTimeout(cartNoticeTimerRef.current);
+      setCartNotice(`${removedName} removed from cart`);
+      cartNoticeTimerRef.current = setTimeout(() => setCartNotice(""), 1800);
+    }
+  };
+
   return (
     <div
       ref={containerRef}
-      className="bg-black text-white min-h-[500vh] uppercase font-sans overflow-x-hidden selection:bg-amber-500"
+      className={`bg-black text-white ${currentPage === "home" ? "min-h-[500vh]" : "min-h-screen"} uppercase font-sans overflow-x-hidden selection:bg-amber-500`}
       onMouseMove={(e) => {
         mouse.current.x = (e.clientX / window.innerWidth) * 2 - 1;
         mouse.current.y = -(e.clientY / window.innerHeight) * 2 + 1;
       }}
     >
-      {/* 3D BACKGROUND (Hidden on mobile if lag persists) */}
-      <div className="fixed inset-0 z-0 h-screen w-full pointer-events-none">
-        <Canvas dpr={isMobile ? 1 : [1, 2]} gl={{ powerPreference: "high-performance" }}>
-          <PerspectiveCamera makeDefault position={[0, 0, 8]} />
-          <Environment preset="city" />
-          <Suspense fallback={null}>
-            <HeroVessel scrollYProgress={scrollYProgress} mouse={mouse} isMobile={isMobile} />
-          </Suspense>
-        </Canvas>
+      <div className="fixed top-4 left-4 z-40 md:top-6 md:left-6">
+        <button
+          onClick={() => setIsMenuOpen(true)}
+          aria-label="Open menu"
+          className="border border-white/30 bg-black/60 px-4 py-2 text-[10px] font-black tracking-[0.2em] backdrop-blur-sm hover:bg-amber-500 hover:text-black hover:border-amber-500 transition-colors md:px-6 md:text-xs"
+          style={{ fontFamily: "'Google Sans', sans-serif" }}
+        >
+          MENU
+        </button>
       </div>
+
+      <div className="fixed top-4 right-4 z-40 flex gap-2 md:top-6 md:right-6 md:gap-3">
+        <button
+          onClick={() => setCurrentPage("cart")}
+          aria-label="Go to cart page"
+          className="border border-white/30 bg-black/60 px-3 py-2 text-[10px] font-black tracking-[0.2em] backdrop-blur-sm hover:bg-amber-500 hover:text-black hover:border-amber-500 transition-colors md:px-6 md:text-xs"
+          style={{ fontFamily: "'Google Sans', sans-serif" }}
+        >
+          CART ({cartCount})
+        </button>
+        <button
+          onClick={() => {
+            setCurrentPage("home");
+            setIsLoginOpen(true);
+          }}
+          aria-label="Open sign in popup"
+          className="border border-white/30 bg-black/60 px-3 py-2 text-[10px] font-black tracking-[0.2em] backdrop-blur-sm hover:bg-amber-500 hover:text-black hover:border-amber-500 transition-colors md:px-6 md:text-xs"
+          style={{ fontFamily: "'Google Sans', sans-serif" }}
+        >
+          LOGIN
+        </button>
+      </div>
+
+      {currentPage === "home" ? (
+        <>
+          {/* 3D BACKGROUND (Hidden on mobile if lag persists) */}
+          <div className="fixed inset-0 z-0 h-screen w-full pointer-events-none">
+            <Canvas dpr={isMobile ? 1 : [1, 2]} gl={{ powerPreference: "high-performance" }}>
+              <PerspectiveCamera makeDefault position={[0, 0, 8]} />
+              <Environment preset="city" />
+              <Suspense fallback={null}>
+                <HeroVessel scrollYProgress={scrollYProgress} mouse={mouse} isMobile={isMobile} />
+              </Suspense>
+            </Canvas>
+          </div>
 
       {/* 1. HERO */}
       <section className="relative z-10 h-screen flex flex-col items-start justify-center px-8">
-        <motion.h1
-          style={{ fontFamily: "'Google Sans', sans-serif", opacity: useTransform(scrollYProgress, [0, 0.1], [1, 0]) }}
+        <Motion.h1
+          style={{ fontFamily: "'Google Sans', sans-serif", opacity: heroOpacity }}
           className="text-[18vw] md:text-[12rem] font-black tracking-tighter mix-blend-difference leading-[0.8]"
         >
           POPCORN<br /><span className="text-amber-500 font-normal">CULTURE.</span>
-        </motion.h1>
-        <motion.h2
-          style={{ fontFamily: "'Google Sans', sans-serif", opacity: useTransform(scrollYProgress, [0, 0.1], [1, 0]) }}
+        </Motion.h1>
+        <Motion.h2
+          style={{ fontFamily: "'Google Sans', sans-serif", opacity: heroOpacity }}
           className="text-3xl md:text-4xl text-amber-500 mt-6 font-semibold max-w-2xl"
         >
-          Where your search come to an end.
-        </motion.h2>
+          Where your search comes to an end.
+        </Motion.h2>
       </section>
 
       {/* 2. BRAND STORY (New Content) */}
@@ -160,7 +246,13 @@ export default function App() {
                   <h3 className="text-4xl font-black italic tracking-tighter group-hover:text-amber-500 transition-colors">{item.name}</h3>
                   <p className="text-xl opacity-40">{item.price}</p>
                 </div>
-                <button className="border border-white/20 px-6 py-2 text-[10px] font-black hover:bg-amber-500 hover:text-black transition-all">GET NOW ↗</button>
+                <button
+                  onClick={() => addToCart(item)}
+                  aria-label={`Add ${item.name} to cart`}
+                  className="border border-white/20 px-6 py-2 text-[10px] font-black hover:bg-amber-500 hover:text-black transition-all"
+                >
+                  ADD TO CART ↗
+                </button>
               </div>
             </div>
           ))}
@@ -169,7 +261,7 @@ export default function App() {
 
       {/* 4. INFINITE MARQUEE (New Content) */}
       <div className="relative z-10 py-20 bg-amber-500 text-black overflow-hidden whitespace-nowrap">
-        <motion.div 
+        <Motion.div 
           animate={{ x: [0, -1000] }} 
           transition={{ repeat: Infinity, duration: 20, ease: "linear" }}
           className="text-6xl font-black italic tracking-tighter flex gap-20"
@@ -177,8 +269,7 @@ export default function App() {
           <span>NEW DROPS EVERY WEEK</span>
           <span>POPCORN CULTURE</span>
           <span>ESTABLISHED 2026</span>
-          <span>BASED IN RIT</span>
-        </motion.div>
+        </Motion.div>
       </div>
 
       {/* 5. SHOP BY CATEGORY */}
@@ -222,7 +313,13 @@ export default function App() {
                   </div>
                   <h4 className="text-2xl font-black italic mb-2 group-hover:text-amber-500 transition-colors">{item.name}</h4>
                   <p className="text-amber-500 font-bold mb-4">{item.price}</p>
-                  <button className="w-full border border-white/20 px-4 py-2 text-[10px] font-black hover:bg-amber-500 hover:text-black transition-all">ADD TO CART ↗</button>
+                  <button
+                    onClick={() => addToCart(item)}
+                    aria-label={`Add ${item.name} to cart`}
+                    className="w-full border border-white/20 px-4 py-2 text-[10px] font-black hover:bg-amber-500 hover:text-black transition-all"
+                  >
+                    ADD TO CART ↗
+                  </button>
                 </div>
               ))}
             </div>
@@ -252,9 +349,22 @@ export default function App() {
         <div className="max-w-2xl mx-auto text-center">
           <h2 className="text-5xl font-black mb-6" style={{ fontFamily: "'Google Sans', sans-serif" }}>STAY IN THE LOOP</h2>
           <p className="text-lg mb-10 opacity-80">Get early access to drops, exclusive discounts & curated picks</p>
-          <div className="flex gap-2">
-            <input type="email" placeholder="your@email.com" className="flex-1 bg-black text-white px-6 py-4 border border-white/20 placeholder-white/40" />
-            <button className="bg-black text-amber-500 px-8 py-4 font-black italic hover:bg-white transition-colors">SUBSCRIBE</button>
+          <div className="flex flex-col gap-2 sm:flex-row">
+            <input
+              type="email"
+              value={newsletterEmail}
+              onChange={(e) => setNewsletterEmail(e.target.value)}
+              placeholder="your@email.com"
+              aria-label="Email for newsletter"
+              className="flex-1 bg-black text-white px-6 py-4 border border-white/20 placeholder-white/40"
+            />
+            <button
+              onClick={() => setIsSubscribeOpen(true)}
+              aria-label="Subscribe to newsletter"
+              className="bg-black text-amber-500 px-8 py-4 font-black italic hover:bg-white transition-colors"
+            >
+              SUBSCRIBE
+            </button>
           </div>
         </div>
       </section>
@@ -274,9 +384,20 @@ export default function App() {
                 <h2 className="text-[10vw] font-black tracking-tighter text-amber-500 leading-none" style={{ fontFamily: "'Google Sans', sans-serif" }}>LET'S<br/>TALK.</h2>
             </div>
             <div className="flex flex-col gap-8">
-                {['Instagram', 'Whatsapp', 'Twitter'].map(link => (
-                    <a key={link} href="#" className="text-4xl font-black border-b border-white/10 py-6 flex justify-between group hover:text-amber-500 transition-colors" style={{ fontFamily: "'Google Sans', sans-serif" }}>
-                        {link} <span className="opacity-0 group-hover:opacity-100 transition-opacity">↗</span>
+                {[
+                  { name: 'Instagram', href: 'https://instagram.com/popcornculture1' },
+                  { name: 'WhatsApp', href: 'https://wa.me/918409536813' },
+                  { name: 'X', href: 'https://x.com/pop_corn_cult' }
+                ].map((link) => (
+                    <a
+                      key={link.name}
+                      href={link.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-4xl font-black border-b border-white/10 py-6 flex justify-between group hover:text-amber-500 transition-colors"
+                      style={{ fontFamily: "'Google Sans', sans-serif" }}
+                    >
+                        {link.name} <span className="opacity-0 group-hover:opacity-100 transition-opacity">↗</span>
                     </a>
                 ))}
                 <p className="mt-10 opacity-30 text-[10px] tracking-[0.5em]">OWNED BY: YUVRAJ CHAUDHARY</p>
@@ -284,9 +405,266 @@ export default function App() {
         </div>
       </section>
 
-      <footer className="relative z-10 py-10 px-8 border-t border-white/5 text-center text-[8px] tracking-[0.8em] opacity-20">
-        ©2026 POPCORN CULTURE // RIT ROORKEE
-      </footer>
+          <footer className="relative z-10 py-10 px-8 border-t border-white/5 text-center text-[8px] tracking-[0.8em] opacity-20">
+            ©2026 POPCORN CULTURE
+          </footer>
+        </>
+      ) : (
+        <section className="relative z-10 min-h-screen px-6 pt-32 pb-16 md:px-10">
+          <div className="mx-auto max-w-6xl">
+            <div className="mb-10 flex items-end justify-between gap-4">
+              <h2 className="text-5xl font-black tracking-tighter text-amber-500 md:text-7xl" style={{ fontFamily: "'Google Sans', sans-serif" }}>
+                YOUR CART
+              </h2>
+              <button
+                onClick={() => setCurrentPage("home")}
+                className="border border-white/20 px-4 py-2 text-xs font-black hover:bg-white/10 transition-colors"
+              >
+                BACK TO SHOP
+              </button>
+            </div>
+
+            {cartItems.length === 0 ? (
+              <div className="border border-white/10 bg-black/50 p-10 text-center">
+                <p className="text-2xl font-black text-amber-500">Your cart is empty.</p>
+                <p className="mt-3 opacity-70">Add items from the homepage to see them here.</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {cartItems.map((item) => (
+                  <div key={item.id} className="grid grid-cols-[90px_1fr_auto] items-center gap-4 border border-white/10 bg-black/50 p-4 md:grid-cols-[110px_1fr_auto]">
+                    <img src={item.img} alt={item.name} className="h-20 w-20 object-cover md:h-24 md:w-24" />
+                    <div>
+                      <p className="text-xl font-black">{item.name}</p>
+                      <p className="text-amber-500">{item.price}</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => removeFromCart(item.id)}
+                        aria-label={`Remove one ${item.name} from cart`}
+                        className="h-9 w-9 border border-white/20 text-lg hover:bg-white/10 transition-colors"
+                      >
+                        -
+                      </button>
+                      <span className="min-w-8 text-center font-black">{item.quantity}</span>
+                      <button
+                        onClick={() => addToCart(item)}
+                        aria-label={`Add one more ${item.name} to cart`}
+                        className="h-9 w-9 border border-white/20 text-lg hover:bg-amber-500 hover:text-black transition-colors"
+                      >
+                        +
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </section>
+      )}
+
+      <AnimatePresence>
+        {cartNotice && (
+          <Motion.div
+            className="fixed bottom-5 left-1/2 z-50 w-[92%] max-w-sm -translate-x-1/2 rounded-lg border border-amber-500/40 bg-black/90 px-4 py-3 text-center text-sm font-semibold text-amber-300 shadow-lg shadow-amber-500/10"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+          >
+            {cartNotice}
+          </Motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {isMenuOpen && (
+          <>
+            <Motion.div
+              className="fixed inset-0 z-40 bg-black/70 backdrop-blur-[2px]"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsMenuOpen(false)}
+            />
+            <Motion.aside
+              className="fixed left-0 top-0 z-50 h-screen w-[92%] max-w-[420px] border-r border-amber-500/30 bg-[radial-gradient(circle_at_top_left,_#231300_0%,_#0a0a0a_40%,_#050505_100%)] px-5 py-6 md:px-8 md:py-8"
+              initial={{ x: "-100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "-100%" }}
+              transition={{ type: "spring", damping: 24, stiffness: 220 }}
+            >
+              <div className="mb-8 flex items-center justify-between">
+                <div>
+                  <p className="text-[10px] tracking-[0.35em] text-white/50">POPCORN CULTURE</p>
+                  <h3 className="text-3xl font-black tracking-tight text-amber-500">MENU</h3>
+                </div>
+                <button
+                  onClick={() => setIsMenuOpen(false)}
+                  aria-label="Close menu"
+                  className="border border-white/20 px-3 py-1 text-xs font-black hover:bg-white/10 transition-colors"
+                >
+                  CLOSE
+                </button>
+              </div>
+
+              <div className="mb-6 rounded-xl border border-white/10 bg-black/35 p-4">
+                <p className="text-[11px] tracking-[0.25em] text-white/50">QUICK STATUS</p>
+                <p className="mt-2 text-sm text-white/80">Items in cart: <span className="font-black text-amber-500">{cartCount}</span></p>
+                <p className="text-sm text-white/70">Page: <span className="font-black text-white">{currentPage.toUpperCase()}</span></p>
+              </div>
+
+              <div className="space-y-3">
+                <button
+                  onClick={() => {
+                    setCurrentPage("home");
+                    setIsMenuOpen(false);
+                  }}
+                  className="w-full rounded-lg border border-white/20 bg-black/40 px-4 py-3 text-left text-lg font-black hover:bg-amber-500 hover:text-black transition-colors"
+                >
+                  HOME
+                  <span className="float-right opacity-70">↗</span>
+                </button>
+                <button
+                  onClick={() => {
+                    setCurrentPage("cart");
+                    setIsMenuOpen(false);
+                  }}
+                  className="w-full rounded-lg border border-white/20 bg-black/40 px-4 py-3 text-left text-lg font-black hover:bg-amber-500 hover:text-black transition-colors"
+                >
+                  CART ({cartCount})
+                  <span className="float-right opacity-70">↗</span>
+                </button>
+                <button
+                  onClick={() => {
+                    setCurrentPage("home");
+                    setIsLoginOpen(true);
+                    setIsMenuOpen(false);
+                  }}
+                  className="w-full rounded-lg border border-white/20 bg-black/40 px-4 py-3 text-left text-lg font-black hover:bg-amber-500 hover:text-black transition-colors"
+                >
+                  SIGN IN
+                  <span className="float-right opacity-70">↗</span>
+                </button>
+              </div>
+            </Motion.aside>
+          </>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {isSubscribeOpen && (
+          <Motion.div
+            className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center px-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <Motion.div
+              className="relative w-full max-w-lg overflow-hidden bg-[#050505] border border-amber-500/40 p-8 text-center"
+              initial={{ scale: 0.92, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+            >
+              {[...Array(16)].map((_, i) => (
+                <Motion.span
+                  key={i}
+                  className="absolute h-2 w-2 rounded-full bg-amber-400"
+                  style={{
+                    left: `${8 + i * 5.5}%`,
+                    top: "85%",
+                  }}
+                  animate={{
+                    y: [-10, -220 - (i % 5) * 14],
+                    x: [0, (i % 2 === 0 ? 1 : -1) * (14 + (i % 4) * 6)],
+                    opacity: [1, 1, 0],
+                    scale: [1, 1.2, 0.8],
+                  }}
+                  transition={{
+                    duration: 1.6 + (i % 3) * 0.2,
+                    repeat: Infinity,
+                    delay: i * 0.05,
+                    ease: "easeOut",
+                  }}
+                />
+              ))}
+
+              <Motion.h3
+                className="text-4xl font-black text-amber-500 mb-4"
+                style={{ fontFamily: "'Google Sans', sans-serif" }}
+                initial={{ y: 10, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ delay: 0.1 }}
+              >
+                YOU'RE IN!
+              </Motion.h3>
+              <p className="text-white/80 mb-8">
+                {newsletterEmail
+                  ? `Thanks, ${newsletterEmail}. You're now subscribed for early drops and exclusive updates.`
+                  : "Thanks for subscribing. You're now in our early access list for upcoming drops."}
+              </p>
+              <button
+                onClick={() => setIsSubscribeOpen(false)}
+                className="bg-amber-500 text-black px-8 py-3 font-black hover:bg-amber-400 transition-colors"
+              >
+                AWESOME
+              </button>
+            </Motion.div>
+          </Motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {isLoginOpen && (
+          <Motion.div
+            className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center px-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <Motion.div
+              className="w-full max-w-md bg-[#050505] border border-white/20 p-8"
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: 20, opacity: 0 }}
+            >
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-3xl font-black text-amber-500" style={{ fontFamily: "'Google Sans', sans-serif" }}>
+                  LOGIN
+                </h3>
+                <button
+                  onClick={() => setIsLoginOpen(false)}
+                  className="text-sm border border-white/20 px-3 py-1 hover:bg-white/10 transition"
+                >
+                  CLOSE
+                </button>
+              </div>
+
+              <form onSubmit={(e) => e.preventDefault()} className="space-y-4">
+                <input
+                  type="email"
+                  placeholder="Email"
+                  className="w-full bg-black text-white px-4 py-3 border border-white/20 placeholder-white/40 focus:outline-none focus:border-amber-500"
+                />
+                <input
+                  type="password"
+                  placeholder="Password"
+                  className="w-full bg-black text-white px-4 py-3 border border-white/20 placeholder-white/40 focus:outline-none focus:border-amber-500"
+                />
+                <button
+                  type="submit"
+                  className="w-full bg-amber-500 text-black py-3 font-black hover:bg-amber-400 transition-colors"
+                >
+                  SIGN IN
+                </button>
+              </form>
+            </Motion.div>
+          </Motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
+
+
+
+

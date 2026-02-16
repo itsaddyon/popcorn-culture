@@ -2,7 +2,7 @@
 import { Canvas } from '@react-three/fiber'
 import { OrbitControls, Stage, MeshReflectorMaterial } from '@react-three/drei'
 
-function DesignerLightModel() {
+export default function DesignerLightModel() {
   return (
     <Canvas dpr={[1, 2]} camera={{ fov: 45 }}>
       <color attach="background" args={['#050505']} />

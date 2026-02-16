@@ -71,6 +71,7 @@ export default function App() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState("home");
   const [cartItems, setCartItems] = useState([]);
+  const [activeColorProductId, setActiveColorProductId] = useState(null);
   const [cartNotice, setCartNotice] = useState("");
   const cartNoticeTimerRef = useRef(null);
   const heroOpacity = useTransform(scrollYProgress, [0, 0.1], [1, 0]);
@@ -145,6 +146,11 @@ export default function App() {
       setCartNotice(`${removedName} removed from cart`);
       cartNoticeTimerRef.current = setTimeout(() => setCartNotice(""), 1800);
     }
+  };
+
+  const toggleMobileColorReveal = (productId) => {
+    if (!isMobile) return;
+    setActiveColorProductId((prev) => (prev === productId ? null : productId));
   };
 
   return (
@@ -234,11 +240,29 @@ export default function App() {
             <h2 className="text-6xl font-black tracking-tighter text-amber-500 leading-none" style={{ fontFamily: "'Google Sans', sans-serif" }}>FEATURED<br/>DROPS.</h2>
             <p className="text-[10px] tracking-widest opacity-30">SCROLL TO EXPLORE</p>
         </div>
+        <p className="mb-8 inline-block border border-amber-500/30 bg-amber-500/10 px-4 py-2 text-[11px] tracking-[0.15em] text-amber-300">
+          TAP OR CLICK PRODUCT IMAGE TO REVEAL IMMERSIVE COLOR
+        </p>
 
         <div className="grid md:grid-cols-2 gap-px bg-white/10 border border-white/10">
           {featuredProducts.map((item) => (
             <div key={item.id} className="group bg-black p-10 hover:bg-white/5 transition-colors cursor-crosshair">
-              <div className="aspect-[4/5] overflow-hidden mb-8 grayscale group-hover:grayscale-0 transition-all duration-700">
+              <div
+                onClick={() => toggleMobileColorReveal(item.id)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") toggleMobileColorReveal(item.id);
+                }}
+                role="button"
+                tabIndex={0}
+                aria-label={`Reveal color preview for ${item.name}`}
+                className={`aspect-[4/5] overflow-hidden mb-8 transition-all duration-700 ${
+                  isMobile
+                    ? activeColorProductId === item.id
+                      ? "grayscale-0"
+                      : "grayscale"
+                    : "grayscale group-hover:grayscale-0"
+                }`}
+              >
                 <img src={item.img} alt={item.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000" />
               </div>
               <div className="flex justify-between items-start">
@@ -308,7 +332,22 @@ export default function App() {
             <div className="grid md:grid-cols-3 gap-8">
               {filteredCategoryProducts.map((item) => (
                 <div key={item.id} className="group bg-black/50 border border-white/20 p-8 hover:border-amber-500 transition-all">
-                  <div className="aspect-square overflow-hidden mb-6 grayscale group-hover:grayscale-0 transition-all duration-700">
+                  <div
+                    onClick={() => toggleMobileColorReveal(item.id)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") toggleMobileColorReveal(item.id);
+                    }}
+                    role="button"
+                    tabIndex={0}
+                    aria-label={`Reveal color preview for ${item.name}`}
+                    className={`aspect-square overflow-hidden mb-6 transition-all duration-700 ${
+                      isMobile
+                        ? activeColorProductId === item.id
+                          ? "grayscale-0"
+                          : "grayscale"
+                        : "grayscale group-hover:grayscale-0"
+                    }`}
+                  >
                     <img src={item.img} alt={item.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000" />
                   </div>
                   <h4 className="text-2xl font-black italic mb-2 group-hover:text-amber-500 transition-colors">{item.name}</h4>

@@ -75,36 +75,65 @@ export default function App() {
   const [cartNotice, setCartNotice] = useState("");
   const cartNoticeTimerRef = useRef(null);
   const heroOpacity = useTransform(scrollYProgress, [0, 0.1], [1, 0]);
+  const formatPrice = (value) => `₹${new Intl.NumberFormat("en-IN").format(value)}`;
 
   const allProducts = [
     // CLOTHES - Real clothing products
-    { id: "CL-01", name: "Oversized Cotton Tee", price: "₹299", category: "CLOTHES", img: "https://m.media-amazon.com/images/I/61rQy0KmJmL._AC_UL480_FMwebp_QL65_.jpg" },
-    { id: "CL-02", name: "Vintage Graphic Hoodie", price: "₹599", category: "CLOTHES", img: "https://m.media-amazon.com/images/I/715BU9q0tWL._AC_UL480_FMwebp_QL65_.jpg" },
-    { id: "CL-03", name: "Denim Jacket Blue", price: "₹899", category: "CLOTHES", img: "https://m.media-amazon.com/images/I/61lkPO7RtML._AC_UL480_FMwebp_QL65_.jpg" },
+    { id: "CL-01", name: "Oversized Cotton Tee", category: "CLOTHES", priceValue: 299, img: "https://m.media-amazon.com/images/I/61rQy0KmJmL._AC_UL480_FMwebp_QL65_.jpg", productUrl: null },
+    { id: "CL-02", name: "Vintage Graphic Hoodie", category: "CLOTHES", priceValue: 599, img: "https://m.media-amazon.com/images/I/715BU9q0tWL._AC_UL480_FMwebp_QL65_.jpg", productUrl: null },
+    { id: "CL-03", name: "Denim Jacket Blue", category: "CLOTHES", priceValue: 899, img: "https://m.media-amazon.com/images/I/61lkPO7RtML._AC_UL480_FMwebp_QL65_.jpg", productUrl: null },
+    { id: "CL-04", name: "KAJARU Men T-Shirt", category: "CLOTHES", priceValue: 279, img: "https://m.media-amazon.com/images/I/91gUsd7m3WL._SY879_.jpg", productUrl: "https://amzn.to/4aB9IlP" },
     // DECORATIVE ITEMS - Real decor products
-    { id: "DE-01", name: "Ceramic Vase White", price: "₹249", category: "DECORATIVE ITEMS", img: "https://m.media-amazon.com/images/I/813Kzy7rfqL._AC_UL480_FMwebp_QL65_.jpg" },
-    { id: "DE-02", name: "Modern Wall Canvas", price: "₹399", category: "DECORATIVE ITEMS", img: "https://m.media-amazon.com/images/I/71PGTjVmqxL._AC_UL480_FMwebp_QL65_.jpg" },
-    { id: "DE-03", name: "Gold Ceramic Pot", price: "₹349", category: "DECORATIVE ITEMS", img: "https://m.media-amazon.com/images/I/61HlF6RzAnL._AC_UL480_FMwebp_QL65_.jpg" },
+    { id: "DE-01", name: "Ceramic Vase White", category: "DECORATIVE ITEMS", priceValue: 249, img: "https://m.media-amazon.com/images/I/813Kzy7rfqL._AC_UL480_FMwebp_QL65_.jpg", productUrl: null },
+    { id: "DE-02", name: "Modern Wall Canvas", category: "DECORATIVE ITEMS", priceValue: 399, img: "https://m.media-amazon.com/images/I/71PGTjVmqxL._AC_UL480_FMwebp_QL65_.jpg", productUrl: null },
+    { id: "DE-03", name: "Gold Ceramic Pot", category: "DECORATIVE ITEMS", priceValue: 349, img: "https://m.media-amazon.com/images/I/61HlF6RzAnL._AC_UL480_FMwebp_QL65_.jpg", productUrl: null },
+    { id: "DE-04", name: "SPHINX White Ceramic Donut Vase", category: "DECORATIVE ITEMS", priceValue: 177, img: "https://m.media-amazon.com/images/I/71AO8RwOCjL._SY879_.jpg", productUrl: "https://amzn.to/4aH1yIH" },
     // COOL GADGETS - Real tech gadgets
-    { id: "GA-01", name: "LED Desk Lamp", price: "₹301", category: "COOL GADGETS", img: "https://m.media-amazon.com/images/I/51vTJvfA7cL._AC_UL480_FMwebp_QL65_.jpg" },
-    { id: "GA-02", name: "Wireless Earbuds Pro", price: "₹449", category: "COOL GADGETS", img: "https://m.media-amazon.com/images/I/718Vby0O1GL._AC_UY327_FMwebp_QL65_.jpg" },
-    { id: "GA-03", name: "Mini Smart Speaker", price: "₹799", category: "COOL GADGETS", img: "https://m.media-amazon.com/images/I/61ln9HHYBoL._AC_UY327_FMwebp_QL65_.jpg" },
+    { id: "GA-01", name: "LED Desk Lamp", category: "COOL GADGETS", priceValue: 301, img: "https://m.media-amazon.com/images/I/51vTJvfA7cL._AC_UL480_FMwebp_QL65_.jpg", productUrl: null },
+    { id: "GA-02", name: "Wireless Earbuds Pro", category: "COOL GADGETS", priceValue: 449, img: "https://m.media-amazon.com/images/I/718Vby0O1GL._AC_UY327_FMwebp_QL65_.jpg", productUrl: null },
+    { id: "GA-03", name: "Mini Smart Speaker", category: "COOL GADGETS", priceValue: 799, img: "https://m.media-amazon.com/images/I/61ln9HHYBoL._AC_UY327_FMwebp_QL65_.jpg", productUrl: null },
+    { id: "GA-04", name: "Carlington Premium Watch", category: "COOL GADGETS", priceValue: 999, img: "https://m.media-amazon.com/images/I/71RlAIwzj5L._SX679_.jpg", productUrl: "https://amzn.to/3ZGx2tq" },
+    { id: "GA-05", name: "Carlington Endurance Series", category: "COOL GADGETS", priceValue: 1207, img: "https://m.media-amazon.com/images/I/61dywKQasaL._SX679_.jpg", productUrl: "https://amzn.to/4aTnG3E" },
+    { id: "GA-06", name: "Casio Vintage A-158WA-1Q Digital Grey Dial Unisex Watch", category: "COOL GADGETS", priceValue: 1894, img: "https://m.media-amazon.com/images/I/61ybeKQto8L._SY879_.jpg", productUrl: "https://amzn.to/46aZM15" },
     // BUDGET ITEMS - Real affordable products
-    { id: "BU-01", name: "Phone Stand", price: "₹99", category: "BUDGET ITEMS", img: "https://m.media-amazon.com/images/I/51gsnG1oP2L._AC_UY327_FMwebp_QL65_.jpg" },
-    { id: "BU-02", name: "Desk Organizer Set", price: "₹149", category: "BUDGET ITEMS", img: "https://m.media-amazon.com/images/I/61A5u90XztL._AC_UL480_FMwebp_QL65_.jpg" },
-    { id: "BU-03", name: "USB Cable Set", price: "₹199", category: "BUDGET ITEMS", img: "https://m.media-amazon.com/images/I/7100MyxcglL._AC_UY327_FMwebp_QL65_.jpg" },
+    { id: "BU-01", name: "Phone Stand", category: "BUDGET ITEMS", priceValue: 99, img: "https://m.media-amazon.com/images/I/51gsnG1oP2L._AC_UY327_FMwebp_QL65_.jpg", productUrl: null },
+    { id: "BU-02", name: "Desk Organizer Set", category: "BUDGET ITEMS", priceValue: 149, img: "https://m.media-amazon.com/images/I/61A5u90XztL._AC_UL480_FMwebp_QL65_.jpg", productUrl: null },
+    { id: "BU-03", name: "USB Cable Set", category: "BUDGET ITEMS", priceValue: 199, img: "https://m.media-amazon.com/images/I/7100MyxcglL._AC_UY327_FMwebp_QL65_.jpg", productUrl: null },
   ];
+
+  const budgetProducts = useMemo(() => {
+    const under500 = allProducts.filter((product) => product.priceValue < 500);
+    return [...new Map(under500.map((product) => [product.id, product])).values()];
+  }, [allProducts]);
 
   const filteredCategoryProducts = selectedCategory
-    ? allProducts.filter(p => p.category === selectedCategory)
+    ? selectedCategory === "BUDGET ITEMS"
+      ? budgetProducts
+      : allProducts.filter((product) => product.category === selectedCategory)
     : [];
 
-  const featuredProducts = [
-    { id: "FP-01", name: "Touch LED Lamp", price: "₹301", img: "https://m.media-amazon.com/images/I/71ZLdAaoeTL._AC_UL480_FMwebp_QL65_.jpg" },
-    { id: "FP-02", name: "Obsidian Crys", price: "₹345", img: "https://m.media-amazon.com/images/I/71ff4YDrbuL._AC_UL480_FMwebp_QL65_.jpg" },
-    { id: "FP-03", name: "Kinetic Wing", price: "₹449", img: "https://m.media-amazon.com/images/I/81DDJuO4HkL._AC_UL480_FMwebp_QL65_.jpg" },
-    { id: "FP-04", name: "Twister Vase", price: "₹249", img: "https://m.media-amazon.com/images/I/511s4x3jzzL._AC_UY327_FMwebp_QL65_.jpg" },
-  ];
+  const featuredCategoryOrder = ["CLOTHES", "DECORATIVE ITEMS", "COOL GADGETS", "BUDGET ITEMS"];
+  const preferredFeaturedByCategory = {
+    CLOTHES: "CL-04",
+    "DECORATIVE ITEMS": "DE-04",
+    "COOL GADGETS": "GA-04",
+    "BUDGET ITEMS": "BU-01",
+  };
+
+  const featuredProducts = useMemo(
+    () =>
+      featuredCategoryOrder
+        .map((category) => {
+          const pool = category === "BUDGET ITEMS"
+            ? budgetProducts
+            : allProducts.filter((product) => product.category === category);
+          const preferredId = preferredFeaturedByCategory[category];
+          return pool.find((product) => product.id === preferredId) ?? pool[0];
+        })
+        .filter(Boolean)
+        .slice(0, 4),
+    [allProducts, budgetProducts]
+  );
 
   const cartCount = useMemo(
     () => cartItems.reduce((total, item) => total + item.quantity, 0),
@@ -265,18 +294,39 @@ export default function App() {
               >
                 <img src={item.img} alt={item.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000" />
               </div>
-              <div className="flex justify-between items-start">
+              <div className="flex justify-between items-start gap-6">
                 <div>
                   <h3 className="text-4xl font-black italic tracking-tighter group-hover:text-amber-500 transition-colors">{item.name}</h3>
-                  <p className="text-xl opacity-40">{item.price}</p>
+                  <p className="text-xl opacity-40">{formatPrice(item.priceValue)}</p>
                 </div>
-                <button
-                  onClick={() => addToCart(item)}
-                  aria-label={`Add ${item.name} to cart`}
-                  className="border border-white/20 px-6 py-2 text-[10px] font-black hover:bg-amber-500 hover:text-black transition-all"
-                >
-                  ADD TO CART ↗
-                </button>
+                <div className="flex min-w-[150px] flex-col gap-2">
+                  <button
+                    onClick={() => addToCart(item)}
+                    aria-label={`Add ${item.name} to cart`}
+                    className="border border-white/20 px-6 py-2 text-[10px] font-black hover:bg-amber-500 hover:text-black transition-all"
+                  >
+                    ADD TO CART ↗
+                  </button>
+                  {item.productUrl ? (
+                    <a
+                      href={item.productUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label={`Buy ${item.name} now`}
+                      className="border border-amber-500/40 bg-amber-500/10 px-6 py-2 text-center text-[10px] font-black text-amber-300 hover:bg-amber-500 hover:text-black transition-all"
+                    >
+                      BUY NOW ↗
+                    </a>
+                  ) : (
+                    <button
+                      disabled
+                      aria-label={`Buy link unavailable for ${item.name}`}
+                      className="cursor-not-allowed border border-white/10 px-6 py-2 text-[10px] font-black text-white/40"
+                    >
+                      BUY NOW (SOON)
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
           ))}
@@ -351,14 +401,35 @@ export default function App() {
                     <img src={item.img} alt={item.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000" />
                   </div>
                   <h4 className="text-2xl font-black italic mb-2 group-hover:text-amber-500 transition-colors">{item.name}</h4>
-                  <p className="text-amber-500 font-bold mb-4">{item.price}</p>
-                  <button
-                    onClick={() => addToCart(item)}
-                    aria-label={`Add ${item.name} to cart`}
-                    className="w-full border border-white/20 px-4 py-2 text-[10px] font-black hover:bg-amber-500 hover:text-black transition-all"
-                  >
-                    ADD TO CART ↗
-                  </button>
+                  <p className="text-amber-500 font-bold mb-4">{formatPrice(item.priceValue)}</p>
+                  <div className="space-y-2">
+                    <button
+                      onClick={() => addToCart(item)}
+                      aria-label={`Add ${item.name} to cart`}
+                      className="w-full border border-white/20 px-4 py-2 text-[10px] font-black hover:bg-amber-500 hover:text-black transition-all"
+                    >
+                      ADD TO CART ↗
+                    </button>
+                    {item.productUrl ? (
+                      <a
+                        href={item.productUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        aria-label={`Buy ${item.name} now`}
+                        className="block w-full border border-amber-500/40 bg-amber-500/10 px-4 py-2 text-center text-[10px] font-black text-amber-300 hover:bg-amber-500 hover:text-black transition-all"
+                      >
+                        BUY NOW ↗
+                      </a>
+                    ) : (
+                      <button
+                        disabled
+                        aria-label={`Buy link unavailable for ${item.name}`}
+                        className="w-full cursor-not-allowed border border-white/10 px-4 py-2 text-[10px] font-black text-white/40"
+                      >
+                        BUY NOW (SOON)
+                      </button>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>
@@ -475,7 +546,7 @@ export default function App() {
                     <img src={item.img} alt={item.name} className="h-20 w-20 object-cover md:h-24 md:w-24" />
                     <div>
                       <p className="text-xl font-black">{item.name}</p>
-                      <p className="text-amber-500">{item.price}</p>
+                      <p className="text-amber-500">{formatPrice(item.priceValue)}</p>
                     </div>
                     <div className="flex items-center gap-2">
                       <button

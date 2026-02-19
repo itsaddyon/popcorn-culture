@@ -1,4 +1,4 @@
-import React, { Suspense, useRef, useState, useMemo } from "react";
+﻿import React, { Suspense, useRef, useState, useMemo } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import {
   PerspectiveCamera,
@@ -73,9 +73,10 @@ export default function App() {
   const [cartItems, setCartItems] = useState([]);
   const [activeColorProductId, setActiveColorProductId] = useState(null);
   const [cartNotice, setCartNotice] = useState("");
+  const [showAffiliateNotice, setShowAffiliateNotice] = useState(true);
   const cartNoticeTimerRef = useRef(null);
   const heroOpacity = useTransform(scrollYProgress, [0, 0.1], [1, 0]);
-  const formatPrice = (value) => `₹${new Intl.NumberFormat("en-IN").format(value)}`;
+  const formatPrice = (value) => `â‚¹${new Intl.NumberFormat("en-IN").format(value)}`;
 
   const allProducts = [
     // CLOTHES - Real clothing products
@@ -300,17 +301,12 @@ export default function App() {
                   <p className="text-xl opacity-40">{formatPrice(item.priceValue)}</p>
                 </div>
                 <div className="flex min-w-[150px] flex-col gap-2">
-                  {item.productUrl && (
-                    <span className="border border-amber-500/40 bg-amber-500/10 px-2 py-1 text-center text-[9px] font-black tracking-[0.12em] text-amber-300">
-                      AFFILIATE: AMAZON
-                    </span>
-                  )}
                   <button
                     onClick={() => addToCart(item)}
                     aria-label={`Add ${item.name} to cart`}
                     className="border border-white/20 px-6 py-2 text-[10px] font-black hover:bg-amber-500 hover:text-black transition-all"
                   >
-                    ADD TO CART ↗
+                    ADD TO CART â†—
                   </button>
                   {item.productUrl ? (
                     <a
@@ -320,7 +316,7 @@ export default function App() {
                       aria-label={`Buy ${item.name} now`}
                       className="border border-amber-500/40 bg-amber-500/10 px-6 py-2 text-center text-[10px] font-black text-amber-300 hover:bg-amber-500 hover:text-black transition-all"
                     >
-                      BUY NOW ↗
+                      BUY NOW â†—
                     </a>
                   ) : (
                     <button
@@ -381,7 +377,7 @@ export default function App() {
                 onClick={() => setSelectedCategory(null)}
                 className="text-sm border border-white/20 px-4 py-2 hover:bg-white/10 transition"
               >
-                ✕ CLEAR
+                âœ• CLEAR
               </button>
             </div>
             <div className="grid md:grid-cols-3 gap-8">
@@ -408,17 +404,12 @@ export default function App() {
                   <h4 className="text-2xl font-black italic mb-2 group-hover:text-amber-500 transition-colors">{item.name}</h4>
                   <p className="text-amber-500 font-bold mb-4">{formatPrice(item.priceValue)}</p>
                   <div className="space-y-2">
-                    {item.productUrl && (
-                      <span className="block border border-amber-500/40 bg-amber-500/10 px-4 py-2 text-center text-[9px] font-black tracking-[0.12em] text-amber-300">
-                        AFFILIATE: AMAZON
-                      </span>
-                    )}
                     <button
                       onClick={() => addToCart(item)}
                       aria-label={`Add ${item.name} to cart`}
                       className="w-full border border-white/20 px-4 py-2 text-[10px] font-black hover:bg-amber-500 hover:text-black transition-all"
                     >
-                      ADD TO CART ↗
+                      ADD TO CART â†—
                     </button>
                     {item.productUrl ? (
                       <a
@@ -428,7 +419,7 @@ export default function App() {
                         aria-label={`Buy ${item.name} now`}
                         className="block w-full border border-amber-500/40 bg-amber-500/10 px-4 py-2 text-center text-[10px] font-black text-amber-300 hover:bg-amber-500 hover:text-black transition-all"
                       >
-                        BUY NOW ↗
+                        BUY NOW â†—
                       </a>
                     ) : (
                       <button
@@ -458,7 +449,7 @@ export default function App() {
           ].map((testi) => (
             <div key={testi.name} className="border border-white/20 p-8 bg-white/5 hover:bg-amber-500/10 transition-colors">
               <p className="text-lg mb-6 italic opacity-80">\"{ testi.text }\"</p>
-              <p className="font-black text-amber-500">— {testi.name}</p>
+              <p className="font-black text-amber-500">â€” {testi.name}</p>
             </div>
           ))}
         </div>
@@ -517,7 +508,7 @@ export default function App() {
                       className="text-4xl font-black border-b border-white/10 py-6 flex justify-between group hover:text-amber-500 transition-colors"
                       style={{ fontFamily: "'Google Sans', sans-serif" }}
                     >
-                        {link.name} <span className="opacity-0 group-hover:opacity-100 transition-opacity">↗</span>
+                        {link.name} <span className="opacity-0 group-hover:opacity-100 transition-opacity">â†—</span>
                     </a>
                 ))}
                 <p className="mt-10 opacity-30 text-[10px] tracking-[0.5em]">OWNED BY: YUVRAJ CHAUDHARY</p>
@@ -525,8 +516,14 @@ export default function App() {
         </div>
       </section>
 
-          <footer className="relative z-10 py-10 px-8 border-t border-white/5 text-center text-[8px] tracking-[0.8em] opacity-20">
-            ©2026 POPCORN CULTURE
+          <footer
+            id="affiliate-disclosure"
+            className="relative z-10 py-10 px-8 border-t border-white/5 text-center text-[8px] tracking-[0.5em] opacity-30"
+          >
+            <p>©2026 POPCORN CULTURE</p>
+            <p className="mt-4 text-[7px] tracking-[0.3em]">
+              AS AN AMAZON ASSOCIATE, WE EARN FROM QUALIFYING PURCHASES.
+            </p>
           </footer>
         </>
       ) : (
@@ -642,7 +639,7 @@ export default function App() {
                   className="w-full rounded-lg border border-white/20 bg-black/40 px-4 py-3 text-left text-lg font-black hover:bg-amber-500 hover:text-black transition-colors"
                 >
                   HOME
-                  <span className="float-right opacity-70">↗</span>
+                  <span className="float-right opacity-70">â†—</span>
                 </button>
                 <button
                   onClick={() => {
@@ -652,7 +649,7 @@ export default function App() {
                   className="w-full rounded-lg border border-white/20 bg-black/40 px-4 py-3 text-left text-lg font-black hover:bg-amber-500 hover:text-black transition-colors"
                 >
                   CART ({cartCount})
-                  <span className="float-right opacity-70">↗</span>
+                  <span className="float-right opacity-70">â†—</span>
                 </button>
                 <button
                   onClick={() => {
@@ -663,7 +660,7 @@ export default function App() {
                   className="w-full rounded-lg border border-white/20 bg-black/40 px-4 py-3 text-left text-lg font-black hover:bg-amber-500 hover:text-black transition-colors"
                 >
                   SIGN IN
-                  <span className="float-right opacity-70">↗</span>
+                  <span className="float-right opacity-70">â†—</span>
                 </button>
               </div>
             </Motion.aside>
@@ -781,9 +778,33 @@ export default function App() {
           </Motion.div>
         )}
       </AnimatePresence>
+
+      {showAffiliateNotice && (
+        <div className="fixed bottom-4 right-4 z-40 w-[210px] border border-amber-500/40 bg-black/85 px-3 py-2.5 text-[9px] text-amber-300 backdrop-blur-sm md:bottom-6 md:right-6 md:w-[220px] md:px-3 md:py-2 md:text-[10px]">
+          <p className="leading-relaxed">
+            AMAZON ASSOCIATE
+          </p>
+          <div className="mt-1.5 flex items-center justify-between text-[9px]">
+            <a href="#affiliate-disclosure" className="underline underline-offset-2 hover:text-amber-200">
+              VIEW DISCLOSURE
+            </a>
+            {isMobile && (
+              <button
+                onClick={() => setShowAffiliateNotice(false)}
+                aria-label="Dismiss affiliate notice"
+                className="border border-amber-500/40 px-2 py-1 hover:bg-amber-500 hover:text-black transition-colors"
+              >
+                DISMISS
+              </button>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
+
+
 
 
 

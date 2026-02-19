@@ -300,6 +300,11 @@ export default function App() {
                   <p className="text-xl opacity-40">{formatPrice(item.priceValue)}</p>
                 </div>
                 <div className="flex min-w-[150px] flex-col gap-2">
+                  {item.productUrl && (
+                    <span className="border border-amber-500/40 bg-amber-500/10 px-2 py-1 text-center text-[9px] font-black tracking-[0.12em] text-amber-300">
+                      AFFILIATE: AMAZON
+                    </span>
+                  )}
                   <button
                     onClick={() => addToCart(item)}
                     aria-label={`Add ${item.name} to cart`}
@@ -403,6 +408,11 @@ export default function App() {
                   <h4 className="text-2xl font-black italic mb-2 group-hover:text-amber-500 transition-colors">{item.name}</h4>
                   <p className="text-amber-500 font-bold mb-4">{formatPrice(item.priceValue)}</p>
                   <div className="space-y-2">
+                    {item.productUrl && (
+                      <span className="block border border-amber-500/40 bg-amber-500/10 px-4 py-2 text-center text-[9px] font-black tracking-[0.12em] text-amber-300">
+                        AFFILIATE: AMAZON
+                      </span>
+                    )}
                     <button
                       onClick={() => addToCart(item)}
                       aria-label={`Add ${item.name} to cart`}

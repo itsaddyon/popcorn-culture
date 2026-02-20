@@ -1,4 +1,4 @@
-﻿import React, { Suspense, useRef, useState, useMemo } from "react";
+﻿import React, { Suspense, useEffect, useRef, useState, useMemo } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import {
   PerspectiveCamera,
@@ -8,6 +8,7 @@ import {
   MeshTransmissionMaterial,
 } from "@react-three/drei";
 import { motion as Motion, useScroll, useTransform, useSpring, AnimatePresence } from "framer-motion";
+import brandLogo from "../logo/logo.jpg";
 
 /* ---------------- 3D HERO OBJECT (Optimized) ---------------- */
 
@@ -57,10 +58,31 @@ function HeroVessel({ scrollYProgress, mouse, isMobile }) {
   );
 }
 
+function ProductImage({ src, alt, wrapperClass, imgClass }) {
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  return (
+    <div className={`relative ${wrapperClass}`}>
+      {!isLoaded && (
+        <div className="absolute inset-0 animate-pulse bg-gradient-to-br from-white/10 via-white/5 to-transparent" />
+      )}
+      <img
+        src={src}
+        alt={alt}
+        loading="lazy"
+        onLoad={() => setIsLoaded(true)}
+        onError={() => setIsLoaded(true)}
+        className={`${imgClass} transition-opacity duration-500 ${isLoaded ? "opacity-100" : "opacity-0"}`}
+      />
+    </div>
+  );
+}
+
 /* ---------------- MAIN APP ---------------- */
 
 export default function App() {
   const containerRef = useRef(null);
+  const shopSectionRef = useRef(null);
   const mouse = useRef({ x: 0, y: 0 });
   const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
   const { scrollYProgress } = useScroll({ target: containerRef });
@@ -74,9 +96,22 @@ export default function App() {
   const [activeColorProductId, setActiveColorProductId] = useState(null);
   const [cartNotice, setCartNotice] = useState("");
   const [showAffiliateNotice, setShowAffiliateNotice] = useState(true);
+  const [isShopSectionInView, setIsShopSectionInView] = useState(false);
   const cartNoticeTimerRef = useRef(null);
   const heroOpacity = useTransform(scrollYProgress, [0, 0.1], [1, 0]);
-  const formatPrice = (value) => `â‚¹${new Intl.NumberFormat("en-IN").format(value)}`;
+  const formatPrice = (value) => `\u20B9${new Intl.NumberFormat("en-IN").format(value)}`;
+  const quickFilterCategories = ["CLOTHES", "COOL GADGETS", "BEAUTY", "DECORATIVE ITEMS", "BUDGET ITEMS"];
+  const topPickIds = useMemo(() => new Set(["CL-04", "DE-04", "GA-07", "BE-02", "BU-01"]), []);
+
+  const trackEvent = (eventName, payload = {}) => {
+    if (typeof window === "undefined") return;
+    const eventPayload = { event: eventName, timestamp: new Date().toISOString(), ...payload };
+    window.dataLayer = window.dataLayer || [];
+    window.dataLayer.push(eventPayload);
+    if (typeof window.gtag === "function") {
+      window.gtag("event", eventName, payload);
+    }
+  };
 
   const allProducts = [
     // CLOTHES - Real clothing products
@@ -96,6 +131,16 @@ export default function App() {
     { id: "GA-04", name: "Carlington Premium Watch", category: "COOL GADGETS", priceValue: 999, img: "https://m.media-amazon.com/images/I/71RlAIwzj5L._SX679_.jpg", productUrl: "https://amzn.to/3ZGx2tq" },
     { id: "GA-05", name: "Carlington Endurance Series", category: "COOL GADGETS", priceValue: 1207, img: "https://m.media-amazon.com/images/I/61dywKQasaL._SX679_.jpg", productUrl: "https://amzn.to/4aTnG3E" },
     { id: "GA-06", name: "Casio Vintage A-158WA-1Q Digital Grey Dial Unisex Watch", category: "COOL GADGETS", priceValue: 1894, img: "https://m.media-amazon.com/images/I/61ybeKQto8L._SY879_.jpg", productUrl: "https://amzn.to/46aZM15" },
+    { id: "GA-07", name: "Portronics Power Shutter 20000mAh 15W Magnetic Wireless Fast Charging Powerbank", category: "COOL GADGETS", priceValue: 1848, img: "https://m.media-amazon.com/images/I/61esBrKqyLL._SL1500_.jpg", productUrl: "https://amzn.to/40gTyZU" },
+    { id: "GA-08", name: "Portronics Snapcase 60W Multifunctional Fast Charging Data Cable Kit", category: "COOL GADGETS", priceValue: 249, img: "https://m.media-amazon.com/images/I/61WRloz+86L._SL1500_.jpg", productUrl: "https://amzn.to/4aDYTPJ" },
+    { id: "GA-09", name: "Amazon basics 17-Piece Electronics Repair Screwdriver Set", category: "COOL GADGETS", priceValue: 289, img: "https://m.media-amazon.com/images/I/7118n9Fd2CL._SL1500_.jpg", productUrl: "https://amzn.to/4cCPVVD" },
+    { id: "GA-10", name: "Plastic Mini Clip Reading LED Study Lamp", category: "COOL GADGETS", priceValue: 298, img: "https://m.media-amazon.com/images/I/61Qm+VXoCwL._SL1500_.jpg", productUrl: "https://amzn.to/46RTtzF" },
+    // BEAUTY - Personal care essentials
+    { id: "BE-01", name: "Pears Original Glycerin Soap Bar", category: "BEAUTY", priceValue: 374, img: "https://m.media-amazon.com/images/I/51hE0ECac6L._SL1000_.jpg", productUrl: "https://amzn.to/4aEOBPk" },
+    { id: "BE-02", name: "Cetaphil Moisturising Lotion", category: "BEAUTY", priceValue: 654.87, img: "https://m.media-amazon.com/images/I/61AM9NwjeCL._SL1500_.jpg", productUrl: "https://amzn.to/3OQ4NpJ" },
+    { id: "BE-03", name: "Cetaphil Moisturising Cream 100 g for Dry & Sensitive Skin", category: "BEAUTY", priceValue: 746.17, img: "https://m.media-amazon.com/images/I/615fFn0PrZL._SX679_.jpg", productUrl: "https://amzn.to/3MlZjm1" },
+    { id: "BE-04", name: "Cinthol Original Bath Soap", category: "BEAUTY", priceValue: 155, img: "https://m.media-amazon.com/images/I/61Err9DzAAL._SL1200_.jpg", productUrl: "https://amzn.to/4kRS0PO" },
+    { id: "DE-05", name: "3D Crystal Moon Lamp", category: "DECORATIVE ITEMS", priceValue: 198, img: "https://m.media-amazon.com/images/I/61GfiZngyIL._SL1500_.jpg", productUrl: "https://amzn.to/4arpD7l" },
     // BUDGET ITEMS - Real affordable products
     { id: "BU-01", name: "Phone Stand", category: "BUDGET ITEMS", priceValue: 99, img: "https://m.media-amazon.com/images/I/51gsnG1oP2L._AC_UY327_FMwebp_QL65_.jpg", productUrl: null },
     { id: "BU-02", name: "Desk Organizer Set", category: "BUDGET ITEMS", priceValue: 149, img: "https://m.media-amazon.com/images/I/61A5u90XztL._AC_UL480_FMwebp_QL65_.jpg", productUrl: null },
@@ -113,11 +158,12 @@ export default function App() {
       : allProducts.filter((product) => product.category === selectedCategory)
     : [];
 
-  const featuredCategoryOrder = ["CLOTHES", "DECORATIVE ITEMS", "COOL GADGETS", "BUDGET ITEMS"];
+  const featuredCategoryOrder = ["CLOTHES", "DECORATIVE ITEMS", "COOL GADGETS", "BEAUTY", "BUDGET ITEMS"];
   const preferredFeaturedByCategory = {
     CLOTHES: "CL-04",
     "DECORATIVE ITEMS": "DE-04",
     "COOL GADGETS": "GA-04",
+    BEAUTY: "BE-02",
     "BUDGET ITEMS": "BU-01",
   };
 
@@ -132,7 +178,7 @@ export default function App() {
           return pool.find((product) => product.id === preferredId) ?? pool[0];
         })
         .filter(Boolean)
-        .slice(0, 4),
+        .slice(0, 5),
     [allProducts, budgetProducts]
   );
 
@@ -142,6 +188,13 @@ export default function App() {
   );
 
   const addToCart = (product) => {
+    trackEvent("add_to_cart", {
+      product_id: product.id,
+      product_name: product.name,
+      category: product.category,
+      price: product.priceValue,
+    });
+
     setCartItems((prev) => {
       const existing = prev.find((item) => item.id === product.id);
       if (existing) {
@@ -182,6 +235,34 @@ export default function App() {
     if (!isMobile) return;
     setActiveColorProductId((prev) => (prev === productId ? null : productId));
   };
+
+  const handleCategorySelect = (category, source, shouldScroll = false) => {
+    setSelectedCategory(category);
+    trackEvent("category_filter_click", { category, source });
+    if (shouldScroll && shopSectionRef.current) {
+      shopSectionRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  };
+
+  useEffect(() => {
+    if (currentPage !== "home" || !shopSectionRef.current) {
+      setIsShopSectionInView(false);
+      return;
+    }
+
+    const section = shopSectionRef.current;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setIsShopSectionInView(entry.isIntersecting);
+      },
+      {
+        threshold: 0.2,
+      }
+    );
+
+    observer.observe(section);
+    return () => observer.disconnect();
+  }, [currentPage]);
 
   return (
     <div
@@ -225,6 +306,39 @@ export default function App() {
         </button>
       </div>
 
+      {currentPage === "home" && (
+        <div className="fixed left-1/2 top-16 z-40 flex -translate-x-1/2 items-center gap-2 border border-amber-500/30 bg-black/75 px-2 py-1 backdrop-blur-sm md:top-6">
+          <img
+            src={brandLogo}
+            alt="Popcorn Culture x Amazon"
+            className="h-6 w-auto md:h-7"
+          />
+          <p className="hidden text-[10px] font-semibold tracking-[0.1em] text-amber-300 sm:block">
+            POPCORN CULTURE x AMAZON
+          </p>
+        </div>
+      )}
+
+      {currentPage === "home" && isShopSectionInView && (
+        <div className="fixed left-1/2 top-28 z-40 w-[94%] max-w-3xl -translate-x-1/2 md:top-20">
+          <div className="flex gap-2 overflow-x-auto border border-white/15 bg-black/65 px-2 py-2 backdrop-blur-sm">
+            {quickFilterCategories.map((category) => (
+              <button
+                key={category}
+                onClick={() => handleCategorySelect(category, "sticky_bar", true)}
+                className={`shrink-0 border px-3 py-1 text-[10px] font-black tracking-[0.08em] transition-colors ${
+                  selectedCategory === category
+                    ? "border-amber-500 bg-amber-500 text-black"
+                    : "border-white/20 bg-black/30 hover:border-amber-500 hover:text-amber-400"
+                }`}
+              >
+                {category}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       {currentPage === "home" ? (
         <>
           {/* 3D BACKGROUND (Hidden on mobile if lag persists) */}
@@ -239,7 +353,7 @@ export default function App() {
           </div>
 
       {/* 1. HERO */}
-      <section className="relative z-10 h-screen flex flex-col items-start justify-center px-8">
+      <section className="relative z-10 h-screen flex flex-col items-start justify-center px-8 pt-16 md:pt-10">
         <Motion.h1
           style={{ fontFamily: "'Google Sans', sans-serif", opacity: heroOpacity }}
           className="text-[18vw] md:text-[12rem] font-black tracking-tighter mix-blend-difference leading-[0.8]"
@@ -255,7 +369,7 @@ export default function App() {
       </section>
 
       {/* 2. BRAND STORY (New Content) */}
-      <section className="relative z-10 py-40 px-8 bg-black/60 backdrop-blur-sm border-y border-white/10">
+      <section className="relative z-10 px-8 py-24 md:py-40 bg-black/60 backdrop-blur-sm border-y border-white/10">
         <div className="max-w-4xl">
           <h2 className="text-sm tracking-[0.8em] opacity-40 mb-10 text-lg" style={{ fontFamily: "'Google Sans', sans-serif" }}>THE MANIFESTO</h2>
           <p className="text-4xl md:text-6xl font-black tracking-tighter leading-tight" style={{ fontFamily: "'Google Sans', sans-serif" }}>
@@ -263,9 +377,10 @@ export default function App() {
           </p>
         </div>
       </section>
+      <div className="relative z-10 h-px bg-gradient-to-r from-transparent via-amber-500/35 to-transparent" />
 
       {/* 3. FEATURED GRID */}
-      <section className="relative z-10 py-32 px-8 bg-black/90">
+      <section className="relative z-10 px-8 py-20 md:py-32 bg-black/90">
         <div className="flex justify-between items-end mb-16">
             <h2 className="text-6xl font-black tracking-tighter text-amber-500 leading-none" style={{ fontFamily: "'Google Sans', sans-serif" }}>FEATURED<br/>DROPS.</h2>
             <p className="text-[10px] tracking-widest opacity-30">SCROLL TO EXPLORE</p>
@@ -276,7 +391,7 @@ export default function App() {
 
         <div className="grid md:grid-cols-2 gap-px bg-white/10 border border-white/10">
           {featuredProducts.map((item) => (
-            <div key={item.id} className="group bg-black p-10 hover:bg-white/5 transition-colors cursor-crosshair">
+            <div key={item.id} className="group bg-black p-10 hover:bg-white/5 transition-all duration-500 cursor-crosshair">
               <div
                 onClick={() => toggleMobileColorReveal(item.id)}
                 onKeyDown={(e) => {
@@ -285,7 +400,7 @@ export default function App() {
                 role="button"
                 tabIndex={0}
                 aria-label={`Reveal color preview for ${item.name}`}
-                className={`aspect-[4/5] overflow-hidden mb-8 transition-all duration-700 ${
+                className={`relative aspect-[4/5] overflow-hidden mb-8 transition-all duration-700 ${
                   isMobile
                     ? activeColorProductId === item.id
                       ? "grayscale-0"
@@ -293,12 +408,27 @@ export default function App() {
                     : "grayscale group-hover:grayscale-0"
                 }`}
               >
-                <img src={item.img} alt={item.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000" />
+                {topPickIds.has(item.id) && (
+                  <span className="absolute left-3 top-3 z-10 border border-amber-500 bg-black/80 px-2 py-1 text-[9px] font-black tracking-[0.12em] text-amber-300">
+                    TOP PICK
+                  </span>
+                )}
+                <ProductImage
+                  src={item.img}
+                  alt={item.name}
+                  wrapperClass="w-full h-full"
+                  imgClass="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000"
+                />
               </div>
               <div className="flex justify-between items-start gap-6">
                 <div>
-                  <h3 className="text-4xl font-black italic tracking-tighter group-hover:text-amber-500 transition-colors">{item.name}</h3>
-                  <p className="text-xl opacity-40">{formatPrice(item.priceValue)}</p>
+                  <h3
+                    className="text-3xl md:text-4xl font-black italic tracking-tighter leading-tight group-hover:text-amber-500 transition-colors"
+                    style={{ display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}
+                  >
+                    {item.name}
+                  </h3>
+                  <p className="text-xl opacity-50 transition-all duration-500 group-hover:-translate-y-1 group-hover:opacity-100">{formatPrice(item.priceValue)}</p>
                 </div>
                 <div className="flex min-w-[150px] flex-col gap-2">
                   <button
@@ -306,17 +436,25 @@ export default function App() {
                     aria-label={`Add ${item.name} to cart`}
                     className="border border-white/20 px-6 py-2 text-[10px] font-black hover:bg-amber-500 hover:text-black transition-all"
                   >
-                    ADD TO CART â†—
+                    ADD TO CART &#8599;
                   </button>
                   {item.productUrl ? (
                     <a
                       href={item.productUrl}
+                      onClick={() =>
+                        trackEvent("affiliate_click", {
+                          product_id: item.id,
+                          product_name: item.name,
+                          category: item.category,
+                          placement: "featured_grid",
+                        })
+                      }
                       target="_blank"
                       rel="noopener noreferrer"
                       aria-label={`Buy ${item.name} now`}
-                      className="border border-amber-500/40 bg-amber-500/10 px-6 py-2 text-center text-[10px] font-black text-amber-300 hover:bg-amber-500 hover:text-black transition-all"
+                      className="border border-amber-500 bg-amber-500 px-6 py-2 text-center text-[10px] font-black text-black hover:bg-amber-400 transition-all"
                     >
-                      BUY NOW â†—
+                      BUY NOW &#8599;
                     </a>
                   ) : (
                     <button
@@ -333,6 +471,7 @@ export default function App() {
           ))}
         </div>
       </section>
+      <div className="relative z-10 h-px bg-gradient-to-r from-transparent via-amber-500/35 to-transparent" />
 
       {/* 4. INFINITE MARQUEE (New Content) */}
       <div className="relative z-10 py-20 bg-amber-500 text-black overflow-hidden whitespace-nowrap">
@@ -348,19 +487,20 @@ export default function App() {
       </div>
 
       {/* 5. SHOP BY CATEGORY */}
-      <section className="relative z-10 py-32 px-8 bg-black/80 border-y border-white/10">
+      <section ref={shopSectionRef} className="relative z-10 px-8 py-20 md:py-32 bg-black/80 border-y border-white/10">
         <h2 className="text-5xl md:text-7xl font-black text-amber-500 mb-16" style={{ fontFamily: "'Google Sans', sans-serif" }}>SHOP BY CATEGORY</h2>
         <div className="grid md:grid-cols-2 gap-8 mb-20">
           {[
             { name: 'CLOTHES', desc: 'Premium wearables & apparel' },
             { name: 'DECORATIVE ITEMS', desc: 'Home aesthetics & decor' },
             { name: 'COOL GADGETS', desc: 'Tech & innovative tools' },
+            { name: 'BEAUTY', desc: 'Skincare & personal care picks' },
             { name: 'BUDGET ITEMS', desc: 'Affordable finds' }
           ].map((cat) => (
             <button
               key={cat.name}
-              onClick={() => setSelectedCategory(cat.name)}
-              className="group bg-black/50 border border-white/20 p-10 hover:bg-amber-500 hover:text-black transition-all cursor-crosshair text-left"
+              onClick={() => handleCategorySelect(cat.name, "shop_grid")}
+              className="group bg-black/50 border border-white/20 p-10 hover:bg-amber-500 hover:text-black transition-all duration-300 cursor-crosshair text-left"
             >
               <h3 className="text-4xl font-black" style={{ fontFamily: "'Google Sans', sans-serif" }}>{cat.name}</h3>
               <p className="text-sm opacity-60 group-hover:opacity-100">{cat.desc}</p>
@@ -374,15 +514,18 @@ export default function App() {
             <div className="flex justify-between items-center mb-12">
               <h3 className="text-4xl font-black text-amber-500" style={{ fontFamily: "'Google Sans', sans-serif" }}>{selectedCategory}</h3>
               <button
-                onClick={() => setSelectedCategory(null)}
+                onClick={() => {
+                  setSelectedCategory(null);
+                  trackEvent("category_filter_clear", { source: "shop_grid" });
+                }}
                 className="text-sm border border-white/20 px-4 py-2 hover:bg-white/10 transition"
               >
-                âœ• CLEAR
+                &#10005; CLEAR
               </button>
             </div>
             <div className="grid md:grid-cols-3 gap-8">
               {filteredCategoryProducts.map((item) => (
-                <div key={item.id} className="group bg-black/50 border border-white/20 p-8 hover:border-amber-500 transition-all">
+                <div key={item.id} className="group bg-black/50 border border-white/20 p-8 hover:border-amber-500 transition-all duration-500">
                   <div
                     onClick={() => toggleMobileColorReveal(item.id)}
                     onKeyDown={(e) => {
@@ -391,7 +534,7 @@ export default function App() {
                     role="button"
                     tabIndex={0}
                     aria-label={`Reveal color preview for ${item.name}`}
-                    className={`aspect-square overflow-hidden mb-6 transition-all duration-700 ${
+                    className={`relative aspect-square overflow-hidden mb-6 transition-all duration-700 ${
                       isMobile
                         ? activeColorProductId === item.id
                           ? "grayscale-0"
@@ -399,27 +542,50 @@ export default function App() {
                         : "grayscale group-hover:grayscale-0"
                     }`}
                   >
-                    <img src={item.img} alt={item.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000" />
+                    {topPickIds.has(item.id) && (
+                      <span className="absolute left-3 top-3 z-10 border border-amber-500 bg-black/80 px-2 py-1 text-[9px] font-black tracking-[0.12em] text-amber-300">
+                        TOP PICK
+                      </span>
+                    )}
+                    <ProductImage
+                      src={item.img}
+                      alt={item.name}
+                      wrapperClass="w-full h-full"
+                      imgClass="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000"
+                    />
                   </div>
-                  <h4 className="text-2xl font-black italic mb-2 group-hover:text-amber-500 transition-colors">{item.name}</h4>
-                  <p className="text-amber-500 font-bold mb-4">{formatPrice(item.priceValue)}</p>
+                  <h4
+                    className="text-2xl font-black italic mb-2 leading-tight group-hover:text-amber-500 transition-colors"
+                    style={{ display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}
+                  >
+                    {item.name}
+                  </h4>
+                  <p className="text-amber-500 font-bold mb-4 transition-all duration-500 group-hover:-translate-y-1 group-hover:opacity-100">{formatPrice(item.priceValue)}</p>
                   <div className="space-y-2">
                     <button
                       onClick={() => addToCart(item)}
                       aria-label={`Add ${item.name} to cart`}
                       className="w-full border border-white/20 px-4 py-2 text-[10px] font-black hover:bg-amber-500 hover:text-black transition-all"
                     >
-                      ADD TO CART â†—
+                      ADD TO CART &#8599;
                     </button>
                     {item.productUrl ? (
                       <a
                         href={item.productUrl}
+                        onClick={() =>
+                          trackEvent("affiliate_click", {
+                            product_id: item.id,
+                            product_name: item.name,
+                            category: item.category,
+                            placement: "category_grid",
+                          })
+                        }
                         target="_blank"
                         rel="noopener noreferrer"
                         aria-label={`Buy ${item.name} now`}
-                        className="block w-full border border-amber-500/40 bg-amber-500/10 px-4 py-2 text-center text-[10px] font-black text-amber-300 hover:bg-amber-500 hover:text-black transition-all"
+                        className="block w-full border border-amber-500 bg-amber-500 px-4 py-2 text-center text-[10px] font-black text-black hover:bg-amber-400 transition-all"
                       >
-                        BUY NOW â†—
+                        BUY NOW &#8599;
                       </a>
                     ) : (
                       <button
@@ -437,9 +603,10 @@ export default function App() {
           </div>
         )}
       </section>
+      <div className="relative z-10 h-px bg-gradient-to-r from-transparent via-amber-500/35 to-transparent" />
 
       {/* 6. TESTIMONIALS */}
-      <section className="relative z-10 py-32 px-8 bg-black">
+      <section className="relative z-10 px-8 py-20 md:py-32 bg-black">
         <h2 className="text-5xl md:text-7xl font-black text-amber-500 mb-16" style={{ fontFamily: "'Google Sans', sans-serif" }}>WHAT CUSTOMERS SAY</h2>
         <div className="grid md:grid-cols-3 gap-8">
           {[
@@ -448,15 +615,16 @@ export default function App() {
             { name: 'Neha K.', text: 'Love the curated selection and fast delivery!' }
           ].map((testi) => (
             <div key={testi.name} className="border border-white/20 p-8 bg-white/5 hover:bg-amber-500/10 transition-colors">
-              <p className="text-lg mb-6 italic opacity-80">\"{ testi.text }\"</p>
-              <p className="font-black text-amber-500">â€” {testi.name}</p>
+              <p className="text-lg mb-6 italic opacity-80">&ldquo;{testi.text}&rdquo;</p>
+              <p className="font-black text-amber-500">{'\u2014'} {testi.name}</p>
             </div>
           ))}
         </div>
       </section>
+      <div className="relative z-10 h-px bg-gradient-to-r from-transparent via-amber-500/35 to-transparent" />
 
       {/* 7. NEWSLETTER SIGNUP */}
-      <section className="relative z-10 py-32 px-8 bg-amber-500 text-black">
+      <section className="relative z-10 px-8 py-20 md:py-32 bg-amber-500 text-black">
         <div className="max-w-2xl mx-auto text-center">
           <h2 className="text-5xl font-black mb-6" style={{ fontFamily: "'Google Sans', sans-serif" }}>STAY IN THE LOOP</h2>
           <p className="text-lg mb-10 opacity-80">Get early access to drops, exclusive discounts & curated picks</p>
@@ -479,17 +647,19 @@ export default function App() {
           </div>
         </div>
       </section>
+      <div className="relative z-10 h-px bg-gradient-to-r from-transparent via-amber-500/35 to-transparent" />
 
       {/* 8. ABOUT */}
-      <section className="relative z-10 py-32 px-8 bg-black/80">
+      <section className="relative z-10 px-8 py-20 md:py-32 bg-black/80">
         <div className="max-w-3xl">
           <h2 className="text-5xl font-black text-amber-500 mb-8" style={{ fontFamily: "'Google Sans', sans-serif" }}>ABOUT POPCORN</h2>
           <p className="text-lg leading-relaxed opacity-80">Popcorn Culture is a curated marketplace for aesthetic enthusiasts. We believe in delivering affordable, premium-quality items that elevate your everyday spaces. Founded in 2026, we're committed to discovering and showcasing the most unique pieces that resonate with modern aesthetics.</p>
         </div>
       </section>
+      <div className="relative z-10 h-px bg-gradient-to-r from-transparent via-amber-500/35 to-transparent" />
 
       {/* 9. CONTACT & SOCIAL */}
-      <section className="relative z-10 py-40 px-8 bg-[#050505]">
+      <section className="relative z-10 px-8 py-24 md:py-40 bg-[#050505]">
         <div className="grid md:grid-cols-2 gap-20">
             <div>
                 <h2 className="text-[10vw] font-black tracking-tighter text-amber-500 leading-none" style={{ fontFamily: "'Google Sans', sans-serif" }}>LET'S<br/>TALK.</h2>
@@ -508,7 +678,7 @@ export default function App() {
                       className="text-4xl font-black border-b border-white/10 py-6 flex justify-between group hover:text-amber-500 transition-colors"
                       style={{ fontFamily: "'Google Sans', sans-serif" }}
                     >
-                        {link.name} <span className="opacity-0 group-hover:opacity-100 transition-opacity">â†—</span>
+                        {link.name} <span className="opacity-0 group-hover:opacity-100 transition-opacity">&#8599;</span>
                     </a>
                 ))}
                 <p className="mt-10 opacity-30 text-[10px] tracking-[0.5em]">OWNED BY: YUVRAJ CHAUDHARY</p>
@@ -550,7 +720,12 @@ export default function App() {
               <div className="space-y-4">
                 {cartItems.map((item) => (
                   <div key={item.id} className="grid grid-cols-[90px_1fr_auto] items-center gap-4 border border-white/10 bg-black/50 p-4 md:grid-cols-[110px_1fr_auto]">
-                    <img src={item.img} alt={item.name} className="h-20 w-20 object-cover md:h-24 md:w-24" />
+                    <ProductImage
+                      src={item.img}
+                      alt={item.name}
+                      wrapperClass="h-20 w-20 md:h-24 md:w-24"
+                      imgClass="h-20 w-20 object-cover md:h-24 md:w-24"
+                    />
                     <div>
                       <p className="text-xl font-black">{item.name}</p>
                       <p className="text-amber-500">{formatPrice(item.priceValue)}</p>
@@ -639,7 +814,7 @@ export default function App() {
                   className="w-full rounded-lg border border-white/20 bg-black/40 px-4 py-3 text-left text-lg font-black hover:bg-amber-500 hover:text-black transition-colors"
                 >
                   HOME
-                  <span className="float-right opacity-70">â†—</span>
+                  <span className="float-right opacity-70">&#8599;</span>
                 </button>
                 <button
                   onClick={() => {
@@ -649,7 +824,7 @@ export default function App() {
                   className="w-full rounded-lg border border-white/20 bg-black/40 px-4 py-3 text-left text-lg font-black hover:bg-amber-500 hover:text-black transition-colors"
                 >
                   CART ({cartCount})
-                  <span className="float-right opacity-70">â†—</span>
+                  <span className="float-right opacity-70">&#8599;</span>
                 </button>
                 <button
                   onClick={() => {
@@ -660,7 +835,7 @@ export default function App() {
                   className="w-full rounded-lg border border-white/20 bg-black/40 px-4 py-3 text-left text-lg font-black hover:bg-amber-500 hover:text-black transition-colors"
                 >
                   SIGN IN
-                  <span className="float-right opacity-70">â†—</span>
+                  <span className="float-right opacity-70">&#8599;</span>
                 </button>
               </div>
             </Motion.aside>
@@ -803,6 +978,10 @@ export default function App() {
     </div>
   );
 }
+
+
+
+
 
 
 
